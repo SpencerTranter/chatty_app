@@ -1,6 +1,6 @@
 const express = require('express');
 const SocketServer = require('ws').Server;
-var uuid = require('node-uuid');
+const uuid = require('node-uuid');
 
 // Set the port to 4000
 const PORT = 4000;
@@ -21,53 +21,33 @@ wss.broadcast = function broadcast(data) {
   });
 };
 
-var colors = ['lawngreen', 'cornflowerblue', 'bisque', 'indigo', 'salmon', 'honeydew'];
+const colors = ['lawngreen', 'cornflowerblue', 'bisque', 'indigo', 'salmon', 'honeydew'];
 
 function get_random_int(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
+  min_rounded = Math.ceil(min);
+  max_rounded = Math.floor(max);
+  return Math.floor(Math.random() * (max_rounded - min_rounded)) + min_rounded;
 }
 
-// function check_for_url(message) {
-//   message = value.split(' ');
-//   value = false;
-//   message.forEach((data) => {
-//     if (data.match(/\.(jpeg|jpg|gif|png)$/) != null){
-//       value = true;
-//     }
-//   })
-//   return value;
-// }
-// function check_for_url(message){
-//   var m,
-//     urls = [],
-//     str = message,
-//     rex = /\.(jpeg|jpg|gif|png)$/;
-
-//   while ( m = rex.exec( str ) ) {
-//     urls.push( m[1] );
-//   }
-
-//   console.log(urls);
-// }
+function broadcast_client_count (client_array) {
+  wss.broadcast(JSON.stringify({
+    type: 'client_info',
+    client_count: client_array.length
+  }));
+}
 
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
 wss.on('connection', (ws) => {
   console.log('Client connected');
+  broadcast_client_count(wss.clients);
 
-  wss.broadcast(JSON.stringify({
-    type: 'client_info',
-    client_number: wss.clients.length
-  }));
-
-  var randomColor = colors[get_random_int(0, colors.length -1)];
+  let randomColor = colors[get_random_int(0, colors.length -1)];
   ws.send(JSON.stringify({type: "colorAssigned", color: randomColor}));
 
-  ws.on('message', function incoming(message) {
-    message = JSON.parse(message);
+  ws.on('message', function incoming(data) {
+    message = JSON.parse(data);
     message.id = uuid.v4();
 
     if(message.type === 'post_message'){
@@ -80,21 +60,14 @@ wss.on('connection', (ws) => {
     message = JSON.stringify(message);
     wss.broadcast(message);
 
-    wss.broadcast(JSON.stringify({
-      type: 'client_info',
-      client_number: wss.clients.length
-    }));
+    broadcast_client_count(wss.clients);
   });
 
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
     console.log('Client disconnected')
-
-    wss.broadcast(JSON.stringify({
-      type: 'client_info',
-      client_number: wss.clients.length
-    }));
+    broadcast_client_count(wss.clients);
 
   });
 });

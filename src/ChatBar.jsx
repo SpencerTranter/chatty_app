@@ -9,12 +9,12 @@ const ChatBar = React.createClass ({
         id="username"
         type="text"
         placeholder="Anonymous"
-        onKeyUp={this.props.onKeyUp}
+        onKeyUp={this.props.username_input}
       />
       <input
         id="new-message"
         type="text"
-        onKeyUp={this.props.onKeyUp}
+        onKeyUp={this.props.message_input}
         placeholder="Type a message and hit ENTER"
       />
     </footer>

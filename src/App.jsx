@@ -4,7 +4,7 @@ import MessageList from './MessageList.jsx';
 
 const App = React.createClass ({
   getInitialState: function () {
-     var data = {
+     let data = {
       currentUser: {
         name: 'Anonymous',
         color: 'black'
@@ -20,36 +20,42 @@ const App = React.createClass ({
     this.socket = new WebSocket("ws://localhost:4000");
 
     this.socket.onmessage = (event) => {
-      var event_data = JSON.parse(event.data);
+      let event_data = JSON.parse(event.data);
+      let new_data = Object.assign({}, this.state.data);
 
       switch(event_data.type ) {
         case 'colorAssigned':
-        console.log('You have been assigned color ' + event_data.color);
-          this.state.data.currentUser.color = event_data.color;
+          console.log('You have been assigned color ' + event_data.color);
+            new_data.currentUser.color = event_data.color;
           break;
         case 'client_info':
-          this.state.data.clients = event_data.client_number;
+          new_data.clients = event_data.client_number;
           break;
         case 'incoming_notification':
-          this.state.data.messages.push(event_data);
+          new_data.messages.push(event_data);
           break;
         case 'incoming_message':
-          this.state.data.messages.push(event_data);
+          new_data.messages.push(event_data);
       }
-      this.setState({data: this.state.data});
+      this.setState({data: new_data});
     }
   },
 
-  handleKeyUp(e) {
-    if(e.key === 'Enter' && e.target.id === 'username'){
-      var notification = `${this.state.data.currentUser.name} changed their name to ${e.target.value}.`;
+  handle_username_input(e) {
+    if (e.key === 'Enter') {
+      let new_data = Object.assign({}, this.state.data);
+      let notification = `${this.state.data.currentUser.name} changed their name to ${e.target.value}.`;
       this.socket.send(JSON.stringify({
         type: 'post_notification',
         content: notification
       }));
-      this.state.data.currentUser.name = e.target.value;
+      new_data.currentUser.name = e.target.value;
+      this.setState({data: new_data});
+    }
+  },
 
-    } else if (e.key === 'Enter' && e.target.id === 'new-message'){
+  handle_message_input(e) {
+    if (e.key === 'Enter') {
       this.socket.send(JSON.stringify({
         type: 'post_message',
         color: this.state.data.currentUser.color,
@@ -72,7 +78,8 @@ const App = React.createClass ({
         />
         <ChatBar
           user={this.state.data.currentUser.name}
-          onKeyUp={this.handleKeyUp}
+          message_input = {this.handle_message_input}
+          username_input = {this.handle_username_input}
         />
       </div>
     );
