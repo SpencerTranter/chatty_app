@@ -1,3 +1,4 @@
+"use strict";
 const express = require('express');
 const SocketServer = require('ws').Server;
 const uuid = require('node-uuid');
@@ -24,8 +25,8 @@ wss.broadcast = function broadcast(data) {
 const colors = ['lawngreen', 'cornflowerblue', 'bisque', 'indigo', 'salmon', 'honeydew'];
 
 function get_random_int(min, max) {
-  min_rounded = Math.ceil(min);
-  max_rounded = Math.floor(max);
+  let min_rounded = Math.ceil(min);
+  let max_rounded = Math.floor(max);
   return Math.floor(Math.random() * (max_rounded - min_rounded)) + min_rounded;
 }
 
@@ -47,7 +48,7 @@ wss.on('connection', (ws) => {
   ws.send(JSON.stringify({type: "colorAssigned", color: randomColor}));
 
   ws.on('message', function incoming(data) {
-    message = JSON.parse(data);
+    let message = JSON.parse(data);
     message.id = uuid.v4();
 
     if(message.type === 'post_message'){
